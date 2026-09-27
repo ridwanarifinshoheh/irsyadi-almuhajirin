@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>YYSN Sulaimaniyah Jawa Tengah</title>
+
+    <link rel="manifest" href="manifest.json" />
+    <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png" />
+
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="İrşad YYSN Sulaimaniyah Jawa Tengah" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <meta name="theme-color" content="#0b4d3b" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap"
+      rel="stylesheet"
+    />
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div id="loaderScreen">
+      <div class="loader-logo">
+        <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" fill="currentColor" viewBox="0 0 16 16">
+          <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z" />
+          <path d="M10.116 5.884a.5.5 0 0 0-.585-.048l-3.5 2.5a.5.5 0 0 0-.048.742l2.5 3.5a.5.5 0 0 0 .742.048l3.5-2.5a.5.5 0 0 0 .048-.742l-2.5-3.5zm-.182 1.353-1.015 3.553L5.366 10.37l1.015-3.553 3.553-1.015z" />
+        </svg>
+      </div>
+      <div class="spinner-border text-light" style="width: 2rem; height: 2rem"></div>
+      <div id="loaderText" data-tr="Bismillah, Platform Yükleniyor..." data-id="Bismillah, Platform Memuat...">Bismillah, Platform Yükleniyor...</div>
+    </div>
+
+    <div id="root"></div>
+
+    <!-- Modal Log Kegiatan -->
+    <div class="modal fade" id="modalLog" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 modal-content-rounded">
+          <div class="modal-header border-0 pb-0">
+            <h6 class="modal-title fw-bold" id="modalLogTitle" data-tr="Faaliyet Kaydet" data-id="Simpan Kegiatan">Faaliyet Kaydet</h6>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <form id="formLog">
+              <input type="hidden" id="log_kegiatan" />
+              <input type="hidden" id="log_isKoyma" />
+              <input type="hidden" id="log_lokasiType" />
+              <div class="mb-3">
+                <label class="form-label" data-tr="Tarih" data-id="Tanggal">Tarih</label>
+                <input type="date" class="form-control" id="log_tanggal" required />
+              </div>
+              <div class="mb-3">
+                <label class="form-label" data-tr="Sayı / Adet" data-id="Jumlah / Unit">Sayı / Adet</label>
+                <input type="number" class="form-control" id="log_jumlah" value="1" min="1" required />
+              </div>
+
+              <div class="mb-3" id="log_lokasi_group" style="display: none">
+                <label class="form-label" id="log_lokasi_label" data-tr="Mekan Seçin" data-id="Pilih Tempat">Mekan Seçin</label>
+                <select class="form-select" id="log_lokasi"></select>
+              </div>
+
+              <div id="log_nama_baru_group" style="display: none">
+                <div class="mb-3">
+                  <label class="form-label" id="log_nama_baru_label" data-tr="Yeni Mekan Adı" data-id="Nama Tempat Baru">Yeni Mekan Adı</label>
+                  <input type="text" class="form-control" id="log_nama_baru" data-ph-tr="Mekan adını yazın..." data-ph-id="Tulis nama tempat..." placeholder="Mekan adını yazın..." />
+                </div>
+                <div class="mb-3">
+                  <label class="form-label" data-tr="Açık Adres / Bölge" data-id="Alamat Lengkap / Daerah">Açık Adres / Bölge</label>
+                  <input type="text" class="form-control" id="log_alamat_baru" data-ph-tr="Mekanın tam adresi..." data-ph-id="Alamat lengkap tempat..." placeholder="Mekanın tam adresi..." />
+                </div>
+                <div class="mb-3">
+                  <label class="form-label" data-tr="Google Haritalar Bağlantısı (İsteğe Bağlı)" data-id="Tautan Google Maps (Opsional)">Google Haritalar Bağlantısı (İsteğe Bağlı)</label>
+                  <input type="url" class="form-control" id="log_linkMaps_baru" placeholder="https://maps.google.com/..." />
+                </div>
+              </div>
+
+              <div class="mb-3" id="log_telepon_group" style="display: none">
+                <label class="form-label fw-bold text-primary" data-tr="Telefon / WA Numarası" data-id="Nomor Telepon / WA">Telefon / WA Numarası</label>
+                <input type="tel" class="form-control border-primary" id="log_telepon" data-ph-tr="Örn: 081234567890" data-ph-id="Cth: 081234567890" placeholder="Örn: 081234567890" />
+              </div>
+
+              <div class="mb-3" id="log_uang_group" style="display: none">
+                <label class="form-label text-success fw-bold" id="log_uang_label" data-tr="Toplanan Meblağ (Rp)" data-id="Jumlah Terkumpul (Rp)">Toplanan Meblağ (Rp)</label>
+                <input type="number" class="form-control" id="log_uang" value="0" step="1" />
+              </div>
+              <div class="mb-3" id="log_personel_tambahan_group" style="display: none">
+                <label class="form-label" data-tr="Eşlik Eden Diğer Personeller (Maksimum 2 Kişi)" data-id="Personel Pendamping (Maks 2 Orang)">Eşlik Eden Diğer Personeller (Maksimum 2 Kişi)</label>
+                <div class="input-group mb-1">
+                  <select class="form-select" id="log_personel_1">
+                    <option value="" data-tr="-- 2. Personel (Yok / Boş) --" data-id="-- Personel Ke-2 (Kosong) --">-- 2. Personel (Yok / Boş) --</option>
+                  </select>
+                </div>
+                <div class="input-group">
+                  <select class="form-select" id="log_personel_2">
+                    <option value="" data-tr="-- 3. Personel (Yok / Boş) --" data-id="-- Personel Ke-3 (Kosong) --">-- 3. Personel (Yok / Boş) --</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label" data-tr="Ek Notlar" data-id="Catatan Tambahan">Ek Notlar</label>
+                <textarea class="form-control" id="log_catatan" rows="2" data-ph-tr="İsteğe bağlı notlar..." data-ph-id="Catatan opsional..." placeholder="İsteğe bağlı notlar..."></textarea>
+              </div>
+              <button type="submit" class="btn-pst w-100" data-tr="Faaliyeti Kaydet" data-id="Simpan Kegiatan">Faaliyeti Kaydet</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Kelola Database -->
+    <div class="modal fade" id="modalDB" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 modal-content-rounded">
+          <div class="modal-header border-0 pb-0">
+            <h6 class="modal-title fw-bold" id="modalDBTitle" data-tr="Veri Ekle" data-id="Tambah Data">Veri Ekle</h6>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <form id="formDB">
+              <input type="hidden" id="db_type" />
+              <input type="hidden" id="db_edit_id" />
+
+              <div class="mb-3">
+                <label class="form-label fw-bold" id="db_nama_label" data-tr="Mekan / Kutu / Cami Adı" data-id="Nama Tempat / Kotak / Masjid">Mekan / Kutu / Cami Adı</label>
+                <input type="text" class="form-control" id="db_nama" required />
+              </div>
+              <div class="mb-3">
+                <label class="form-label" data-tr="Açık Adres" data-id="Alamat Lengkap">Açık Adres</label>
+                <input type="text" class="form-control" id="db_alamat" required />
+              </div>
+              <div class="mb-3">
+                <label class="form-label fw-bold text-primary" data-tr="Google Haritalar Bağlantısı (İsteğe Bağlı)" data-id="Tautan Google Maps (Opsional)">Google Haritalar Bağlantısı (İsteğe Bağlı)</label>
+                <input type="url" class="form-control border-primary" id="db_linkMaps" placeholder="https://maps.google.com/..." />
+              </div>
+
+              <div class="mb-3" id="db_pemasang_group" style="display: none">
+                <label class="form-label" data-tr="Koyan Personel Adı (İsteğe Bağlı)" data-id="Nama Personel Pemasang (Opsional)">Koyan Personel Adı (İsteğe Bağlı)</label>
+                <input type="text" class="form-control" id="db_pemasang" data-ph-tr="Koyan personelin adını yazın..." data-ph-id="Ketik nama personel pemasang..." placeholder="Koyan personelin adını yazın..." />
+              </div>
+
+              <div class="mb-3" id="db_catatan_group" style="display: none">
+                <label class="form-label" data-tr="Ek Notlar" data-id="Catatan Tambahan">Ek Notlar</label>
+                <textarea class="form-control" id="db_catatan" rows="2" data-ph-tr="Not yazın (isteğe bağlı)..." data-ph-id="Tulis catatan (opsional)..." placeholder="Not yazın (isteğe bağlı)..."></textarea>
+              </div>
+
+              <div class="mb-3" id="db_tipe_group" style="display: none">
+                <label class="form-label" data-tr="Cami Durumu" data-id="Status Masjid">Cami Durumu</label>
+                <select class="form-select" id="db_tipe">
+                  <option value="Yeni" data-tr="Yeni Cami" data-id="Masjid Baru">Yeni Cami</option>
+                  <option value="Eski" data-tr="Eski Cami" data-id="Masjid Lama">Eski Cami</option>
+                </select>
+              </div>
+              <button type="submit" class="btn-pst w-100" data-tr="Veriyi Kaydet" data-id="Simpan Data">Veriyi Kaydet</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Brosur -->
+    <div class="modal fade" id="modalBrosur" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 modal-content-rounded">
+          <div class="modal-header border-0 pb-0">
+            <h6 class="modal-title fw-bold" id="modalBrosurTitle" data-tr="Broşur Yükle" data-id="Unggah Brosur">Broşur Yükle (Upload Brosur)</h6>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <form id="formBrosur">
+              <input type="hidden" id="brosur_edit_id" />
+              <div class="mb-3">
+                <label class="form-label fw-bold text-primary" data-tr="Pesantren Adı" data-id="Nama Pesantren">Nama Pesantren</label>
+                <select class="form-select border-primary" id="brosur_pesantren" required>
+                  <option value="" data-tr="-- Pesantren Seçin --" data-id="-- Pilih Pesantren --">-- Pilih Pesantren --</option>
+                  <option value="Al Muhajirin Sulaimaniyah">Al Muhajirin Sulaimaniyah</option>
+                  <option value="UI Sulaimaniyah Institute">UI Sulaimaniyah Institute</option>
+                </select>
+              </div>
+              <div class="mb-3">
+                <label class="form-label fw-bold" data-tr="Broşür Başlığı" data-id="Judul Brosur">Judul Brosur</label>
+                <input type="text" class="form-control" id="brosur_judul" data-ph-tr="Kısa broşür başlığı..." data-ph-id="Judul singkat brosur..." placeholder="Judul singkat brosur..." required />
+              </div>
+              <div class="mb-3">
+                <label class="form-label fw-bold" data-tr="Resim Linki (Google Drive)" data-id="URL / Link Gambar Brosur">URL / Link Gambar Brosur</label>
+                <input type="url" class="form-control" id="brosur_img" placeholder="https://..." required />
+                <small class="text-muted" style="font-size: 11px;" data-tr="*Google Drive resim bağlantısını kullanın." data-id="*Gunakan link gambar dari Google Drive.">*Gunakan link gambar dari Google Drive.</small>
+              </div>
+              <div class="mb-3">
+                <label class="form-label fw-bold" data-tr="Açıklama / Başlık Metni" data-id="Teks Caption / Penjelasan">Teks Caption / Penjelasan</label>
+                <textarea class="form-control" id="brosur_text" rows="5" data-ph-tr="Kullanıcının kopyalayacağı metni yazın..." data-ph-id="Ketik kata-kata yang akan dicopy oleh user..." placeholder="Ketik kata-kata yang akan dicopy oleh user..." required></textarea>
+              </div>
+              <button type="submit" class="btn-pst w-100" data-tr="Broşürü Kaydet" data-id="Simpan Brosur">Broşürü Kaydet (Simpan)</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Mekanlar -->
+    <div class="modal fade" id="modalMekan" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 modal-content-rounded">
+          <div class="modal-header border-0 pb-0">
+            <h6 class="modal-title fw-bold" id="modalMekanTitle" data-tr="Mekan Ekle" data-id="Tambah Tempat (Mekan)">Mekan Ekle (Tambah Tempat)</h6>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <form id="formMekan">
+              <input type="hidden" id="mekan_edit_id" />
+              <div class="mb-3">
+                <label class="form-label fw-bold text-primary" data-tr="Kategori" data-id="Kategori">Kategori</label>
+                <select class="form-select border-primary" id="mekan_kategori" required onchange="onMekanKategoriChange()">
+                  <option value="" data-tr="-- Kategori Seçin --" data-id="-- Pilih Kategori --">-- Pilih Kategori --</option>
+                  <option value="Masjid">Masjid</option>
+                  <option value="Mushollah">Mushollah</option>
+                  <option value="PT/Instansi">PT / Instansi</option>
+                  <option value="Warung Madura">Warung Madura</option>
+                  <option value="Warung Makan">Warung Makan</option>
+                  <option value="Taman Kanak-Kanak">Taman Kanak-Kanak</option>
+                  <option value="Sekolah Dasar">Sekolah Dasar</option>
+                  <option value="Sekolah Menegah Pertama">Sekolah Menegah Pertama</option>
+                  <option value="Sekolah Menegah Akhir">Sekolah Menegah Akhir</option>
+                  <option value="Universitas">Universitas</option>
+                  <option value="Komunitas">Komunitas</option>
+                  <option value="Rumah Sakit">Rumah Sakit</option>
+                  <option value="Klinik/Puskesmas">Klinik/Puskesmas</option>
+                  <option value="Pengajian/Majelis Taklim">Pengajian/Majelis Taklim</option>
+                  <option value="__lainnya__" data-tr="+ Diğer Kategori (Manuel Yaz)" data-id="+ Kategori Lainnya (Tulis Manual)">+ Kategori Lainnya (Tulis Manual)</option>
+                </select>
+              </div>
+
+              <div class="mb-3" id="mekan_kategori_manual_group" style="display: none">
+                <label class="form-label fw-bold" data-tr="Manuel Kategori Adı" data-id="Nama Kategori Manual">Nama Kategori Manual</label>
+                <input type="text" class="form-control" id="mekan_kategori_manual" data-ph-tr="Örn: Okul, Yurt, vb..." data-ph-id="Contoh: Sekolah, Kos-kosan, dsb..." placeholder="Contoh: Sekolah, Kos-kosan, dsb..." />
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label fw-bold" id="mekan_nama_label" data-tr="Mekan Adı" data-id="Nama Tempat">Nama Tempat</label>
+                <input type="text" class="form-control" id="mekan_nama" required />
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label fw-bold" data-tr="Google Haritalar Linki" data-id="Link Maps">Link Maps</label>
+                <input type="url" class="form-control" id="mekan_linkMaps" placeholder="https://maps.google.com/..." />
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label fw-bold" id="mekan_pj_label" data-tr="Sorumlu Kişi" data-id="Nama Penanggung Jawab">Nama Penanggung Jawab</label>
+                <input type="text" class="form-control" id="mekan_penanggungJawab" />
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label fw-bold text-success" data-tr="No. WA (WhatsApp)" data-id="No. WA">No. WA</label>
+                <input type="tel" class="form-control border-success" id="mekan_noWA" data-ph-tr="Örn: 081234567890" data-ph-id="Cth: 081234567890" placeholder="Örn: 081234567890" />
+              </div>
+
+              <div id="mekan_instansi_group" style="display: none">
+                <div class="mb-3">
+                  <label class="form-label" data-tr="Şirket Sektörü" data-id="Bidang Perusahaan">Bidang Perusahaan</label>
+                  <input type="text" class="form-control" id="mekan_bidangUsaha" data-ph-tr="Örn: Üretim, Ticaret, Hizmet..." data-ph-id="Contoh: Manufaktur, Perdagangan, Jasa..." placeholder="Contoh: Manufaktur, Perdagangan, Jasa..." />
+                </div>
+                <div class="mb-3">
+                  <label class="form-label" data-tr="Mescit veya Cami var mı?" data-id="Apakah Terdapat Masjid atau Mushollah?">Apakah Terdapat Masjid atau Mushollah?</label>
+                  <select class="form-select" id="mekan_adaMasjidMushollah">
+                    <option value="">-- Seçin / Pilih --</option>
+                    <option value="Ya" data-tr="Evet" data-id="Ya">Ya</option>
+                    <option value="Tidak" data-tr="Hayır" data-id="Tidak">Tidak</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label fw-bold" data-tr="Açıklama (Yapılabilecek Potansiyel Çalışmalar)" data-id="Keterangan (Potensi yang Bisa Dilakukan)">Keterangan (Potensi yang Bisa Dilakukan)</label>
+                <textarea class="form-control" id="mekan_keterangan" rows="3" data-ph-tr="Burada yapılabilecek potansiyel irşad faaliyetlerini yazın..." data-ph-id="Tulis potensi dakwah/kegiatan yang bisa dilakukan di tempat ini..." placeholder="Tulis potensi dakwah/kegiatan yang bisa dilakukan di tempat ini..."></textarea>
+              </div>
+
+              <button type="submit" class="btn-pst w-100" data-tr="Mekan Verisini Kaydet" data-id="Simpan Data Tempat">Mekan Verisini Kaydet (Simpan)</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Edit Log -->
+    <div class="modal fade" id="modalEditLog" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 modal-content-rounded">
+          <div class="modal-header border-0 pb-0">
+            <h6 class="modal-title fw-bold" data-tr="Faaliyeti Düzenle" data-id="Edit Kegiatan">Faaliyeti Düzenle</h6>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <form id="formEditLog">
+              <input type="hidden" id="edit_log_id" />
+              <div class="mb-3">
+                <label class="form-label text-muted" data-tr="Faaliyet" data-id="Kegiatan">Faaliyet</label>
+                <input type="text" class="form-control" id="edit_log_kegiatan" readonly style="background-color: #f3f4f6" />
+              </div>
+              <div class="mb-3">
+                <label class="form-label text-muted" data-tr="Konum / Mekan" data-id="Lokasi / Tempat">Konum / Mekan</label>
+                <input type="text" class="form-control" id="edit_log_lokasi" readonly style="background-color: #f3f4f6" />
+              </div>
+              <div class="mb-3">
+                <label class="form-label" data-tr="Tarih" data-id="Tanggal">Tarih</label>
+                <input type="date" class="form-control" id="edit_log_tanggal" required />
+              </div>
+              <div class="mb-3">
+                <label class="form-label" data-tr="Adet / Sayı" data-id="Jumlah / Unit">Adet / Sayı</label>
+                <input type="number" class="form-control" id="edit_log_jumlah" min="1" required />
+              </div>
+              <div class="mb-3">
+                <label class="form-label text-success fw-bold" data-tr="Toplanan Meblağ (Rp)" data-id="Jumlah Terkumpul (Rp)">Toplanan Meblağ (Rp)</label>
+                <input type="number" class="form-control" id="edit_log_uang" step="1" />
+              </div>
+              <div class="mb-3">
+                <label class="form-label" data-tr="Ek Notlar" data-id="Catatan Tambahan">Ek Notlar</label>
+                <textarea class="form-control" id="edit_log_catatan" rows="2"></textarea>
+              </div>
+              <button type="submit" class="btn-pst w-100" data-tr="Değişiklikleri Kaydet" data-id="Simpan Perubahan">Değişiklikleri Kaydet</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="script.js"></script>
+  </body>
+</html>

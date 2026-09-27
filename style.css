@@ -1,0 +1,615 @@
+:root {
+  /* Brand palette (kept) */
+  --g900: #0b4d3b;
+  --g700: #0d6e56;
+  --g500: #16a085;
+  --g100: #e8f8f3;
+  --g050: #f2fcf8;
+  --ink: #1a1a1a;
+  --sub: #6b7280;
+  --bdr: #e5e7eb;
+  --bg: #f7f9f8;
+  --wht: #ffffff;
+  --sw: 250px;
+
+  /* New: refined design tokens (additive — nothing above changed) */
+  --g300: #4fb89b;
+  --ink-soft: #374151;
+  --danger: #dc2626;
+  --warn: #d97706;
+
+  --font-display: "Plus Jakarta Sans", "Segoe UI", -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-body: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+
+  --r-sm: 10px;
+  --r-md: 14px;
+  --r-lg: 20px;
+  --r-full: 9999px;
+
+  --sh-sm: 0 1px 2px rgba(16, 24, 22, 0.05);
+  --sh-md: 0 4px 6px -1px rgba(16, 24, 22, 0.06), 0 2px 4px -2px rgba(16, 24, 22, 0.05);
+  --sh-lg: 0 12px 28px -8px rgba(11, 77, 59, 0.18);
+
+  --ease: cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1, h2, h3, h4, h5, h6,
+.modal-title,
+.mc-val {
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
+}
+
+/* Accessible keyboard focus (kept minimal & consistent everywhere) */
+a:focus-visible,
+button:focus-visible,
+.nav-item:focus-visible,
+.gate-tab:focus-visible,
+.form-control:focus-visible,
+.form-select:focus-visible,
+.act-tile:focus-visible {
+  outline: 2px solid var(--g500);
+  outline-offset: 2px;
+}
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--g500);
+  box-shadow: 0 0 0 3px rgba(22, 160, 133, 0.15);
+}
+
+/* Reusable rounding helper (used instead of repeating inline styles) */
+.modal-content-rounded {
+  border-radius: var(--r-lg);
+}
+
+/* ============================================================
+   Loader
+   ============================================================ */
+#loaderScreen {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(120% 120% at 50% 0%, #114f3d 0%, var(--g900) 55%, #082e23 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  gap: 2px;
+}
+.loader-logo {
+  width: 64px;
+  height: 64px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30px;
+  color: #fff;
+  margin-bottom: 20px;
+  box-shadow: var(--sh-lg);
+}
+#loaderText {
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 13px;
+  margin-top: 14px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
+/* ============================================================
+   Gate Login
+   ============================================================ */
+.gate-wrap {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    radial-gradient(60% 55% at 85% 8%, rgba(79, 184, 155, 0.35) 0%, rgba(79, 184, 155, 0) 60%),
+    linear-gradient(160deg, var(--g900) 0%, #0d6e56 100%);
+  padding: 16px;
+}
+.gate-card {
+  background: var(--wht);
+  border-radius: var(--r-lg);
+  padding: 32px 28px;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.22);
+}
+/* Only plays on a genuine first mount (initial load / after logout) —
+   not on tab or language switches, so those stay flicker-free. */
+.gate-card.gate-anim {
+  animation: gate-in 0.35s var(--ease);
+}
+@keyframes gate-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.gate-tabs {
+  display: flex;
+  background: var(--g050);
+  border-radius: 12px;
+  padding: 4px;
+  margin-bottom: 24px;
+  border: 1px solid var(--bdr);
+}
+.gate-tab {
+  flex: 1;
+  text-align: center;
+  padding: 10px;
+  font-weight: 700;
+  font-size: 13px;
+  border-radius: 8px;
+  cursor: pointer;
+  color: var(--sub);
+  transition: all 0.2s var(--ease);
+}
+.gate-tab:hover {
+  color: var(--g900);
+}
+.gate-tab.active {
+  background: var(--wht);
+  color: var(--g900);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+}
+
+/* ============================================================
+   App Shell & Sidebar
+   ============================================================ */
+.app-shell {
+  display: flex;
+  min-height: 100vh;
+}
+.sidebar {
+  width: var(--sw);
+  background: var(--wht);
+  border-right: 1px solid var(--bdr);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 1030;
+  transition: transform 0.25s var(--ease);
+}
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 18px 16px;
+  border-bottom: 1px solid var(--bdr);
+}
+.sb-mark {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: linear-gradient(155deg, var(--g700) 0%, var(--g900) 100%);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  box-shadow: var(--sh-sm);
+  flex-shrink: 0;
+}
+.sidebar-nav {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 10px;
+}
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  color: #4b5563;
+  font-size: 13.5px;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: none;
+  margin-bottom: 4px;
+  transition: background 0.15s var(--ease), color 0.15s var(--ease);
+}
+.nav-item:hover {
+  background: var(--g050);
+  color: var(--g900);
+}
+.nav-item.active {
+  background: var(--g100);
+  color: var(--g900);
+  font-weight: 700;
+}
+.main-area {
+  margin-left: var(--sw);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.topbar {
+  background: var(--wht);
+  border-bottom: 1px solid var(--bdr);
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 1020;
+}
+
+/* ============================================================
+   Metric Grid
+   ============================================================ */
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.metric-card {
+  background: var(--wht);
+  border: 1px solid var(--bdr);
+  border-radius: 16px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  transition: box-shadow 0.2s var(--ease), transform 0.2s var(--ease);
+}
+.metric-card:hover {
+  box-shadow: var(--sh-md);
+  transform: translateY(-2px);
+}
+.mc-val {
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.mc-lbl {
+  font-size: 11px;
+  color: var(--sub);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* ============================================================
+   Cards & Tiles
+   ============================================================ */
+.pst-card {
+  background: #ffffff;
+  border-radius: 15px;
+  border: 1px solid #eef2f3;
+  box-shadow: var(--sh-sm);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+.act-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+}
+.act-tile {
+  background: var(--wht);
+  border: 1.5px solid var(--bdr);
+  border-radius: 14px;
+  padding: 14px 12px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.2s var(--ease), box-shadow 0.2s var(--ease), transform 0.2s var(--ease);
+}
+.act-tile:hover {
+  border-color: var(--g500);
+  box-shadow: var(--sh-md);
+  transform: translateY(-3px);
+}
+
+/* Kartu Animasyonları */
+.card-interactive {
+  transition: all 0.3s var(--ease);
+}
+.card-interactive:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 24px rgba(11, 77, 59, 0.15) !important;
+  border-color: var(--g500) !important;
+}
+
+.personnel-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 10px;
+}
+.personnel-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border: 1px solid var(--bdr);
+  border-radius: 12px;
+  background: var(--wht);
+  transition: border-color 0.2s var(--ease), box-shadow 0.2s var(--ease);
+}
+.personnel-item:hover {
+  border-color: var(--g300);
+  box-shadow: var(--sh-sm);
+}
+
+.btn-pst {
+  background: var(--g900);
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-weight: 700;
+  transition: background 0.15s var(--ease), box-shadow 0.15s var(--ease), transform 0.1s var(--ease);
+  box-shadow: 0 2px 6px rgba(11, 77, 59, 0.18);
+}
+.btn-pst:hover {
+  background: var(--g700);
+  box-shadow: 0 4px 12px rgba(11, 77, 59, 0.24);
+}
+.btn-pst:active {
+  transform: translateY(1px);
+}
+.btn-pst:disabled {
+  opacity: 0.7;
+  box-shadow: none;
+}
+
+/* Mobile Responsive */
+.mobile-toggle {
+  display: none;
+  font-size: 22px;
+  cursor: pointer;
+  color: var(--ink);
+}
+@media (max-width: 991px) {
+  .sidebar {
+    transform: translateX(-100%);
+  }
+  .sidebar.open {
+    transform: translateX(0);
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.3);
+  }
+  .main-area {
+    margin-left: 0;
+  }
+  .mobile-toggle {
+    display: inline-block;
+  }
+  .pst-card {
+    padding: 1.1rem;
+  }
+}
+
+.btn-loading {
+  position: relative;
+  pointer-events: none;
+  opacity: 0.7;
+}
+.btn-loading::after {
+  content: "";
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-left: 8px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spinner 0.75s linear infinite;
+  vertical-align: text-bottom;
+}
+@keyframes spinner {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.pst-card .table-responsive {
+  max-height: 62vh;
+  overflow-y: auto;
+  overflow-x: auto;
+  border: 1px solid var(--bdr);
+  border-radius: 12px;
+}
+
+.pst-card .table-responsive table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background-color: #f8f9fa !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+.pst-card .table-responsive tbody tr {
+  transition: background 0.12s var(--ease);
+}
+.pst-card .table-responsive tbody tr:hover {
+  background: var(--g050);
+}
+
+.pst-card .table-responsive::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.pst-card .table-responsive::-webkit-scrollbar-track {
+  background: var(--g050);
+  border-radius: 8px;
+}
+.pst-card .table-responsive::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 8px;
+}
+.pst-card .table-responsive::-webkit-scrollbar-thumb:hover {
+  background: var(--g500);
+}
+
+.bi-goat::before {
+  content: "🐐";
+  font-style: normal;
+}
+
+/* Modern kartlar */
+.card-modern {
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  box-shadow: var(--sh-sm);
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+  transition: box-shadow 0.2s var(--ease);
+}
+.card-modern:hover {
+  box-shadow: var(--sh-md);
+}
+
+/* Modern Tablolar */
+.table-modern {
+  width: 100%;
+  margin-bottom: 0;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.table-modern thead th {
+  background: #f8fafc;
+  color: #64748b;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 1rem;
+  border-top: 1px solid #e2e8f0;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.table-modern td {
+  padding: 1rem;
+  vertical-align: middle;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 0.9rem;
+}
+
+.table-modern tbody tr {
+  transition: background 0.12s var(--ease);
+}
+.table-modern tbody tr:hover {
+  background: var(--g050);
+}
+
+/* Badge */
+.badge-kegiatan {
+  background-color: #ecfdf5;
+  color: #065f46;
+  padding: 0.25rem 0.6rem;
+  border-radius: var(--r-full);
+  font-size: 0.75rem;
+  font-weight: 600;
+  display: inline-block;
+}
+
+/* Styling untuk Foto Profil */
+.profile-pic-container {
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+  border-radius: 50%;
+}
+.profile-pic-large {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s ease;
+  background-color: var(--wht);
+}
+.profile-pic-hover {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  opacity: 0;
+  transition: 0.3s;
+  font-size: 20px;
+}
+.profile-pic-container:hover .profile-pic-hover {
+  opacity: 1;
+}
+.profile-pic-container:hover .profile-pic-large {
+  border-color: #ffffff;
+}
+
+/* ============================================================
+   Modal polish (structure untouched — visual refinement only)
+   ============================================================ */
+.modal-header .btn-close {
+  transition: opacity 0.15s var(--ease);
+}
+.modal-body .form-label {
+  font-size: 12.5px;
+  color: var(--ink-soft);
+  margin-bottom: 6px;
+}
+.modal-body .form-control,
+.modal-body .form-select {
+  border-radius: 10px;
+  border-color: var(--bdr);
+}
+
+/* Global thin scrollbar (kept the sidebar/table-specific rules above intact) */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 8px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--g500);
+}
