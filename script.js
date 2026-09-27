@@ -1821,7 +1821,29 @@
 
       const MEKAN_ICONS = { "Masjid": "bi-moon-stars-fill", "Mushollah": "bi-moon-stars", "PT/Instansi": "bi-building", "Warung Madura": "bi-shop", "Warung Makan": "bi-cup-hot-fill" };
       function getMekanIcon(k) { return MEKAN_ICONS[k] || "bi-geo-alt-fill"; }
-      function buildWaLink(n) { if(!n) return ""; let x = String(n).replace(/[^0-9]/g, ""); return `https://wa.me/${x.startsWith("0") ? "62" + x.substring(1) : x}`; }
+      function buildWaLink(n) {
+        if (!n) return "";
+        const x = String(n).replace(/[^0-9]/g, "");
+        if (!x) return "";
+        const normalized = x.startsWith("0") ? "62" + x.substring(1) : x;
+        return `https://wa.me/${normalized}`;
+      }
+
+      // Toggle grup Mekanlar. Fungsi ini dipanggil oleh tombol pada kartu kategori.
+      window.toggleGroup = (groupId, btn) => {
+        const group = $(groupId);
+        if (!group) return;
+
+        const isHidden = group.style.display === "none";
+        group.style.display = isHidden ? "" : "none";
+
+        if (btn) {
+          const icon = btn.querySelector("i");
+          const label = btn.querySelector(".toggle-label");
+          if (icon) icon.className = isHidden ? "bi bi-chevron-up" : "bi bi-chevron-down";
+          if (label) label.textContent = isHidden ? t("Aç", "Buka") : t("Kapat", "Tutup");
+        }
+      };
 
       function renderMekanlar() {
           const isAdmin = App.user.role === "idareci";
@@ -1849,7 +1871,7 @@
                     <span class="badge bg-light text-dark border ms-1">${items.length}</span>
                   </h6>
                   <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2" onclick="toggleGroup('${groupId}', this)">
-                    <i class="bi bi-chevron-up"></i> <span class="toggle-label">${t("")}</span>
+                    <i class="bi bi-chevron-up"></i> <span class="toggle-label">${t("Kapat", "Tutup")}</span>
                   </button>
                 </div>
                 <div class="row g-3" id="${groupId}">
@@ -1894,16 +1916,29 @@
         $("modalMekanTitle").innerText = t("Mekanı Düzenle", "Edit Tempat"); onMekanKategoriChange(); bootstrap.Modal.getOrCreateInstance($("modalMekan")).show();
       };
       window.hapusMekan = async (id) => {
-        const confirm = await Swal.fire({ title: t("Sil?", "Hapus?"), icon: "warning", showCancelButton: true, confirmButtonText: t("Sil", "Hapus") });
-        if(confirm.isConfirmed) {
-          await DB.call("deleteMekan", id);
-          const dataRes = await DB.getInitData();
-          if (dataRes.ok) App.data = dataRes.data;
+        const confirm = await Swal.fire({
+          title: t("Sil?", "Hapus?"),
+          text: t("Bu mekan kalıcı olarak silinecektir.", "Data tempat ini akan dihapus permanen."),
+          icon: "warning",
+          showCancelButton: true,
+          confirmButtonText: t("Sil", "Hapus"),
+          cancelButtonText: t("İptal", "Batal"),
+        });
+        if (!confirm.isConfirmed) return;
 
-          navTo(App.nav);
-          applyHtmlTranslations();
-          Swal.fire({ icon: 'success', title: t('Silindi!', 'Terhapus!'), toast: true, position: 'top-end', showConfirmButton: false, timer: 1500 });
+        const res = await DB.call("deleteMekan", id);
+        if (!res || res.ok === false) {
+          return Swal.fire({ icon: "error", title: t("Hata", "Error"), text: res?.error || t("Veri silinemedi.", "Data gagal dihapus.") });
         }
+
+        const dataRes = await DB.getInitData();
+        if (!dataRes.ok) {
+          return Swal.fire({ icon: "warning", title: t("Uyarı", "Peringatan"), text: dataRes.error || t("Veriler yenilenemedi.", "Data gagal diperbarui.") });
+        }
+        App.data = dataRes.data;
+        navTo(App.nav);
+        applyHtmlTranslations();
+        Swal.fire({ icon: "success", title: t("Silindi!", "Terhapus!"), toast: true, position: "top-end", showConfirmButton: false, timer: 1500 });
       };
 
       if($("formMekan")) $("formMekan").onsubmit = async (e) => {
@@ -1911,18 +1946,26 @@
         const k = $("mekan_kategori").value === "__lainnya__" ? $("mekan_kategori_manual").value : $("mekan_kategori").value;
         const p = { kategori: k, nama: $("mekan_nama").value, linkMaps: $("mekan_linkMaps").value, penanggungJawab: $("mekan_penanggungJawab").value, noWA: $("mekan_noWA").value, bidangUsaha: $("mekan_bidangUsaha").value, adaMasjidMushollah: $("mekan_adaMasjidMushollah").value, keterangan: $("mekan_keterangan").value };
         const editId = $("mekan_edit_id").value;
+        if (!k || !$("mekan_nama").value.trim()) {
+          setBtnLoading(btn, false);
+          return Swal.fire({ icon: "warning", title: t("Eksik Veri", "Data Belum Lengkap"), text: t("Kategori dan nama tempat wajib diisi.", "Kategori dan nama tempat wajib diisi.") });
+        }
+
         const res = editId ? await DB.call("editMekan", editId, p) : await DB.call("addMekan", p);
 
-        if(res.ok) {
-          const dataRes = await DB.getInitData();
-          if (dataRes.ok) App.data = dataRes.data;
-          bootstrap.Modal.getOrCreateInstance($("modalMekan")).hide();
-
-          navTo(App.nav);
-          applyHtmlTranslations();
-          Swal.fire({ icon: 'success', title: t('Başarılı!', 'Berhasil!'), timer: 1500, showConfirmButton: false });
+        if (!res || res.ok === false) {
+          Swal.fire({ icon: "error", title: t("Hata", "Error"), text: res?.error || t("Veri kaydedilemedi.", "Data gagal disimpan.") });
         } else {
-          Swal.fire("Error", res.error, "error");
+          const dataRes = await DB.getInitData();
+          if (!dataRes.ok) {
+            Swal.fire({ icon: "warning", title: t("Uyarı", "Peringatan"), text: dataRes.error || t("Veriler yenilenemedi.", "Data gagal diperbarui.") });
+          } else {
+            App.data = dataRes.data;
+            bootstrap.Modal.getOrCreateInstance($("modalMekan")).hide();
+            navTo(App.nav);
+            applyHtmlTranslations();
+            Swal.fire({ icon: "success", title: t("Başarılı!", "Berhasil!"), timer: 1500, showConfirmButton: false });
+          }
         }
         setBtnLoading(btn, false);
       };
