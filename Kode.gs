@@ -10,7 +10,6 @@ const SN = {
   KUMBARA: "Kumbara",
   MASJID: "Masjid",
   TALEBE: "Talebe",
-  BROSUR: "Brosur",
   MEKANLAR: "Mekanlar",
   PENGATURAN: "Pengaturan"
 };
@@ -73,7 +72,6 @@ const HEADERS = {
     "longitude",
   ],
   TALEBE: ["id", "namaTalebe"],
-  BROSUR: ["id","pesantren", "judul", "imgUrl", "text", "tanggal"], // <--- TAMBAHAN: Header Brosur
   // <--- TAMBAHAN: Header Mekanlar (Masjid/Mushollah/PT-Instansi/Warung Madura/Warung Makan/Lainnya)
   MEKANLAR: [
     "id",
@@ -307,9 +305,6 @@ const API_WHITELIST = {
   editLog: editLog,
   deleteLog: deleteLog,
   getCustomActivityReport: getCustomActivityReport,
-  addBrosur: addBrosur,        // <--- TAMBAHAN
-  deleteBrosur: deleteBrosur,
-  editBrosur: editBrosur,   // <--- TAMBAHAN
   addMekan: addMekan,           // <--- TAMBAHAN: Mekanlar
   editMekan: editMekan,         // <--- TAMBAHAN: Mekanlar
   deleteMekan: deleteMekan,     // <--- TAMBAHAN: Mekanlar
@@ -517,10 +512,6 @@ function getInitData() {
     const shTalebe = ss.getSheetByName(SN.TALEBE);
     const talebe = shTalebe ? sheetToArr(shTalebe) : [];
 
-    // --- TAMBAHAN: Tarik Data Brosur ---
-    const shBrosur = ss.getSheetByName(SN.BROSUR);
-    const brosur = shBrosur ? sheetToArr(shBrosur) : [];
-
     // --- TAMBAHAN: Tarik Data Mekanlar ---
     const shMekanlar = ss.getSheetByName(SN.MEKANLAR);
     const mekanlar = shMekanlar ? sheetToArr(shMekanlar) : [];
@@ -549,7 +540,6 @@ function getInitData() {
         todayLog,
         allLog,
         talebe,
-        brosur, // <--- TAMBAHAN: Kirim brosur ke frontend
         mekanlar, // <--- TAMBAHAN: Kirim mekanlar ke frontend
       },
     };
@@ -1200,78 +1190,6 @@ function getKoordinatDariURL(url) {
   }
 
   return ["", ""];
-}
-
-// ============================================================
-// FUNGSI MANAJEMEN BROSUR (TAMBAHAN BARU)
-// ============================================================
-function addBrosur(payload) {
-  try {
-    const ss = getSS();
-    let sh = ss.getSheetByName(SN.BROSUR);
-
-    // Jika sheet belum ada, buat otomatis
-    if (!sh) {
-      sh = ss.insertSheet(SN.BROSUR);
-      sh.appendRow(HEADERS.BROSUR);
-    }
-
-    const id = genId("BRS");
-    sh.appendRow([
-      id,
-      payload.pesantren,
-      payload.judul,
-      payload.imgUrl,
-      payload.text,
-      fmtDate(new Date())
-    ]);
-
-    return { ok: true, id: id };
-  } catch (e) {
-    return { ok: false, error: e.message };
-  }
-}
-
-function deleteBrosur(id) {
-  try {
-    const ss = getSS();
-    const sh = ss.getSheetByName(SN.BROSUR);
-    if (!sh) return { ok: false, error: "Sheet Brosur tidak ditemukan." };
-
-    const raw = sh.getDataRange().getValues();
-    for (let i = 1; i < raw.length; i++) {
-      if (String(raw[i][0]) === String(id)) {
-        sh.deleteRow(i + 1);
-        return { ok: true };
-      }
-    }
-    return { ok: false, error: "Data brosur tidak ditemukan." };
-  } catch (e) {
-    return { ok: false, error: e.message };
-  }
-}
-
-function editBrosur(id, payload) {
-  try {
-    const ss = getSS();
-    const sh = ss.getSheetByName(SN.BROSUR);
-    if (!sh) return { ok: false, error: "Sheet Brosur tidak ditemukan." };
-
-    const data = sh.getDataRange().getValues();
-
-    for (let i = 1; i < data.length; i++) {
-      if (String(data[i][0]) === String(id)) {
-        // Kolom 2: judul, Kolom 3: imgUrl, Kolom 4: text
-        sh.getRange(i + 1, 2, 1, 4).setValues([
-          [payload.pesantren, payload.judul, payload.imgUrl, payload.text],
-        ]);
-        return { ok: true };
-      }
-    }
-    return { ok: false, error: "Data brosur tidak ditemukan di database." };
-  } catch (e) {
-    return { ok: false, error: e.message };
-  }
 }
 
 // ============================================================

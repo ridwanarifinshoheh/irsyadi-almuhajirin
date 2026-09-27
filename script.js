@@ -426,7 +426,6 @@
               { id: "laporan-aktivitas", icon: "bi-clipboard-data-fill", label: t("Faaliyet Raporu", "Laporan Kegiatan") },
               { id: "laporan", icon: "bi-bar-chart-fill", label: t("Takım Raporu", "Laporan Tim") },
               { id: "kelola", icon: "bi-folder-fill", label: t("Saha Kayıtlarını Yönet", "Kelola Data Lapangan") },
-              { id: "brosur", icon: "bi-images", label: t("Broşurlar", "Brosur") },
               { id: "mekanlar", icon: "bi-geo-alt-fill", label: t("Mekanlar", "Daftar Tempat") },
             ]
           : [
@@ -435,7 +434,6 @@
               { id: "daftar-kotak-amal", icon: "bi-safe", label: t("Sadaka Kutusu Listesi", "Daftar Kotak Amal") },
               { id: "daftar-kumbara", icon: "bi-database-fill", label: t("Kumbara Listesi", "Daftar Kumbara") },
               { id: "daftar-cami", icon: "bi-moon-stars", label: t("Cami Listesi", "Daftar Masjid") },
-              { id: "brosur", icon: "bi-images", label: t("Broşurlar", "Brosur") },
               { id: "mekanlar", icon: "bi-geo-alt-fill", label: t("Mekanlar", "Daftar Tempat") },
             ];
 
@@ -645,9 +643,6 @@
         } else if (id === "laporan-aktivitas") {
           $("topTitle").innerText = t("Dönemsel Faaliyet Raporu", "Laporan Kegiatan Berkala");
           $("pageContent").innerHTML = renderLaporanAktivitas();
-        } else if (id === "brosur") {
-          $("topTitle").innerText = t("Broşurlar (Galeri Brosur)", "Brosur (Galeri Brosur)");
-          $("pageContent").innerHTML = renderBrosur();
         } else if (id === "mekanlar") {
           $("topTitle").innerText = t("Mekanlar (Daftar Tempat Potensi)", "Mekanlar (Daftar Tempat Potensi)");
           $("pageContent").innerHTML = renderMekanlar();
@@ -1822,116 +1817,6 @@
             Swal.fire({ icon: 'success', title: t('Foto Profil Diperbarui!', 'Foto Profil Diperbarui!'), toast: true, position: 'top-end', showConfirmButton: false, timer: 2000 });
         };
         reader.readAsDataURL(file);
-      };
-
-      window.getDirectImageUrl = (url) => {
-        if (!url) return "";
-        const match = url.match(/drive\.google\.com\/(?:file\/d\/|open\?id=)([a-zA-Z0-9_-]+)/);
-        return match && match[1] ? `https://drive.google.com/thumbnail?id=${match[1]}&sz=w1000` : url;
-      };
-
-      function renderBrosur() {
-        const isAdmin = App.user.role === "idareci";
-        const dataBrosur = App.data.brosur || [];
-
-        let html = `
-          <div class="d-flex justify-content-between align-items-center mb-4">
-            <div>
-              <h6 class="fw-bold mb-0 text-dark"><i class="bi bi-images text-primary me-2"></i>${t("Dijital Broşürler", "Brosur Digital")}</h6>
-            </div>
-            ${isAdmin ? `<button class="btn btn-sm btn-pst shadow-sm" onclick="openBrosurModal()"><i class="bi bi-plus-lg me-1"></i> ${t("Yeni Ekle", "Tambah Baru")}</button>` : ""}
-          </div>
-        `;
-
-        if (dataBrosur.length === 0) return html + `<div class="pst-card text-center py-5 text-muted"><i class="bi bi-folder-x fs-1 d-block mb-2"></i>${t("Henüz broşür yok.", "Belum ada brosur.")}</div>`;
-
-        const groupedBrosur = { "Al Muhajirin Sulaimaniyah": [], "UI Sulaimaniyah Institute": [], "Lainnya (Tanpa Kategori)": [] };
-        dataBrosur.forEach(b => { if (groupedBrosur[b.pesantren]) groupedBrosur[b.pesantren].push(b); else groupedBrosur["Lainnya (Tanpa Kategori)"].push(b); });
-
-        let groupIdx = 0;
-        for (const [pesantren, brosurs] of Object.entries(groupedBrosur)) {
-          if (brosurs.length === 0) continue;
-          const groupId = `brosur-group-${groupIdx++}`;
-          html += `
-            <div class="mb-4">
-              <div class="d-flex align-items-center justify-content-between mb-3" style="border-bottom: 2px solid var(--g500); padding-bottom: 6px;">
-                <h6 class="fw-bold text-success mb-0"><i class="bi bi-building me-1"></i> ${pesantren} <span class="badge bg-light text-dark border ms-1">${brosurs.length}</span></h6>
-                <!-- MENGGUNAKAN FUNGSI TOGGLE UMUM -->
-                <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2" onclick="toggleGroup('${groupId}', this)"><i class="bi bi-chevron-up"></i> <span class="toggle-label">${t("")}</span></button>
-              </div>
-              <div class="row g-3" id="${groupId}">
-          `;
-          html += brosurs.map(b => {
-            const imgUrl = getDirectImageUrl(b.imgUrl);
-            return `
-            <div class="col-12 col-sm-6 col-md-4">
-              <div class="card-modern h-100 d-flex flex-column p-0 overflow-hidden">
-                <div class="px-3 py-2 bg-light border-bottom text-truncate fw-bold text-dark"><i class="bi bi-bookmark-star-fill text-warning me-1"></i> ${b.judul || "Tanpa Judul"}</div>
-                <div style="height: 220px; background-color: #f3f4f6; position: relative; cursor: pointer;" onclick="window.open('${imgUrl}', '_blank')">
-                  <img src="${imgUrl}" onerror="this.src='https://placehold.co/600x400?text=Error'" style="width: 100%; height: 100%; object-fit: cover;">
-                </div>
-                <div class="p-3 flex-grow-1"><div class="text-muted" style="font-size: 12px; white-space: pre-wrap;" id="text-brosur-${b.id}">${b.text}</div></div>
-                <div class="d-flex gap-2 p-2 border-top bg-light">
-                  <button class="btn btn-sm btn-success flex-grow-1" onclick="downloadImage('${imgUrl}')"><i class="bi bi-download me-1"></i> ${t("İndir", "Unduh")}</button>
-                  <button class="btn btn-sm btn-outline-primary flex-grow-1" onclick="copyText('text-brosur-${b.id}')"><i class="bi bi-clipboard me-1"></i> ${t("Kopyala", "Salin")}</button>
-                  ${isAdmin ? `<button class="btn btn-sm btn-outline-primary" onclick="openEditBrosurModal('${b.id}')"><i class="bi bi-pencil-square"></i></button><button class="btn btn-sm btn-outline-danger" onclick="hapusBrosur('${b.id}')"><i class="bi bi-trash"></i></button>` : ""}
-                </div>
-              </div>
-            </div>`;
-          }).join("");
-          html += `</div></div>`;
-        }
-        return html;
-      }
-
-      window.toggleGroup = (groupId, btn) => {
-        const el = $(groupId), icon = btn.querySelector("i"), label = btn.querySelector(".toggle-label");
-        if (el.style.display === "none") { el.style.display = ""; icon.className = "bi bi-chevron-up"; label.textContent = t(""); }
-        else { el.style.display = "none"; icon.className = "bi bi-chevron-down"; label.textContent = t(""); }
-      };
-
-      window.copyText = (id) => {
-        navigator.clipboard.writeText($(id).innerText).then(() => Swal.fire({ icon: 'success', title: t('Kopyalandı!', 'Tersalin!'), toast: true, position: 'top-end', showConfirmButton: false, timer: 2000 }));
-      };
-      window.downloadImage = async (url) => { try { const res = await fetch(url); const blob = await res.blob(); const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = "Brosur.jpg"; link.click(); } catch (e) { window.open(url, '_blank'); } };
-      window.hapusBrosur = async (id) => {
-        const confirm = await Swal.fire({ title: t("Sil?", "Hapus?"), icon: "warning", showCancelButton: true, confirmButtonText: t("Sil", "Hapus") });
-        if(confirm.isConfirmed) {
-          await DB.call("deleteBrosur", id);
-          const dataRes = await DB.getInitData();
-          if (dataRes.ok) App.data = dataRes.data;
-
-          navTo(App.nav);
-          applyHtmlTranslations();
-          Swal.fire({ icon: 'success', title: t('Silindi!', 'Terhapus!'), toast: true, position: 'top-end', showConfirmButton: false, timer: 1500 });
-        }
-      };
-
-      if($("formBrosur")) $("formBrosur").onsubmit = async (e) => {
-        e.preventDefault(); const btn = e.target.querySelector('button'); setBtnLoading(btn, true);
-        const p = { pesantren: $("brosur_pesantren").value, judul: $("brosur_judul").value, imgUrl: $("brosur_img").value, text: $("brosur_text").value };
-        const editId = $("brosur_edit_id").value;
-        const res = editId ? await DB.call("editBrosur", editId, p) : await DB.call("addBrosur", p);
-
-        if(res.ok) {
-          const dataRes = await DB.getInitData();
-          if (dataRes.ok) App.data = dataRes.data;
-          bootstrap.Modal.getOrCreateInstance($("modalBrosur")).hide();
-
-          navTo(App.nav);
-          applyHtmlTranslations();
-          Swal.fire({ icon: 'success', title: t('Başarılı!', 'Berhasil!'), timer: 1500, showConfirmButton: false });
-        } else {
-          Swal.fire("Error", res.error, "error");
-        }
-        setBtnLoading(btn, false);
-      };
-
-      window.openBrosurModal = () => { $("formBrosur").reset(); $("brosur_edit_id").value = ""; $("modalBrosurTitle").innerText = t("Broşur Yükle", "Unggah Brosur"); bootstrap.Modal.getOrCreateInstance($("modalBrosur")).show(); };
-      window.openEditBrosurModal = (id) => {
-        const b = (App.data.brosur || []).find(x => x.id === id); if(!b) return;
-        $("brosur_edit_id").value = b.id; $("brosur_pesantren").value = b.pesantren; $("brosur_judul").value = b.judul; $("brosur_img").value = b.imgUrl; $("brosur_text").value = b.text;
-        $("modalBrosurTitle").innerText = t("Broşürü Düzenle", "Edit Brosur"); bootstrap.Modal.getOrCreateInstance($("modalBrosur")).show();
       };
 
       const MEKAN_ICONS = { "Masjid": "bi-moon-stars-fill", "Mushollah": "bi-moon-stars", "PT/Instansi": "bi-building", "Warung Madura": "bi-shop", "Warung Makan": "bi-cup-hot-fill" };
